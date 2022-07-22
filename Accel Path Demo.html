@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html><head>
+  <title>Accel Path Demo</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="msapplication-tap-highlight" content="no">
+  
+  <style type="text/css">
+  
+    body, html{
+      margin:0;
+      padding:0;
+    }
+    ul, h1, h3 {
+      margin: 0;
+      padding: 5px;
+    }
+    #content{
+      background-color: lightgray;
+      width: 300px;
+      height: 600px;
+    }
+    svg {
+      position: absolute;
+      width:300px;
+    }
+
+    #motionPath{
+      opacity:0;
+    }
+    #uberCar {
+      position: absolute;
+      width: 68px;
+      height: 34px;
+      background-image: url(car2.png);
+    }
+  </style>
+  <script src="Accel%20Path%20Demo_files/TweenMax.js"></script>
+  <script src="Accel%20Path%20Demo_files/MorphSVGPlugin.js"></script>
+
+</head>
+
+<body>
+  <div id="content">
+
+    <svg id="demo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 600">
+      <rect id="background" width="300" height="600" fill="#CFD8DC"></rect>
+      <path id="motionPath" d="M123.5 562 123.5 360 0.5 360 0.5 174 203.5 174 203.5 0" fill="none" stroke="#5dba47" stroke-miterlimit="10" stroke-width="2"></path>    
+    </svg>
+
+    <div id="uberCar"></div>
+  </div>
+
+  <ul>
+    <!-- <h3>Device Motion</h3> -->
+    <li>Tilt Value: <span id="tiltValue"></span></li>
+    <!-- <li>acceleration x: <span id="accelerationX"></span></li>
+    <li>acceleration y: <span id="accelerationY"></span></li>
+    <li>acceleration z: <span id="accelerationZ"></span></li> -->
+  </ul>
+
+  <ul>
+    <!-- <h3>Device Orientation</h3> -->
+    <li>Timescale: <span id="timescaleValue"></span></li>
+    <!-- <li>alpha: <span id="do_alpha"></span></li>
+    <li>beta: <span id="do_beta"></span></li>
+    <li>gamma: <span id="do_gamma"></span></li> -->
+  </ul>
+
+  <script>
+    var x = 0, y = 0, vx = 0, vy = 0, ax = 0, ay = 0;
+    var absolute, alpha, beta, gamma;
+    var accX, accY, accZ;
+    var car = document.getElementById("uberCar");
+    var deviceTilt_Y = 0;
+    var timeScale = 1;
+
+    var myTween,
+    motionPath = MorphSVGPlugin.pathDataToBezier("#motionPath");
+
+    myTween = TweenMax.to("#uberCar", 10, {ease:Power0.easeNone, bezier:{autoRotate:true, values:motionPath, type:"cubic"}});
+    myTween.pause();
+    
+    // DeviceOrientation for Y rotation
+    if (window.DeviceOrientationEvent != undefined) 
+    {
+      window.ondeviceorientation = function (e) 
+      {
+        alpha     = e.alpha;
+        beta      = e.beta;
+        gamma     = e.gamma;
+
+        timeScale = Number( Number(-Math.abs(Math.round(beta))+100) * 0.090 );
+        document.getElementById("timescaleValue").innerHTML = timeScale.toFixed(2);
+
+        // document.getElementById("do_alpha").innerHTML = alpha.toFixed(3);
+        // document.getElementById("do_beta").innerHTML = beta.toFixed(3);
+        // document.getElementById("do_gamma").innerHTML = gamma.toFixed(3);
+      }
+    }
+    
+    // DeviceMotion for left/right/forward/reverse speed
+    if (window.DeviceMotionEvent != undefined) 
+    {
+      window.ondevicemotion = function (e) 
+      {
+        accX = e.accelerationIncludingGravity.x;
+        accY = e.accelerationIncludingGravity.y;
+        accZ = e.accelerationIncludingGravity.z;
+
+        // document.getElementById("accelerationX").innerHTML = accX.toFixed(3);
+        // document.getElementById("accelerationY").innerHTML = accY.toFixed(3);
+        // document.getElementById("accelerationZ").innerHTML = accZ.toFixed(3);
+
+        deviceTilt_Y = Math.round(e.accelerationIncludingGravity.y);
+        document.getElementById("tiltValue").innerHTML = deviceTilt_Y;
+
+        if( deviceTilt_Y.between(-10, 0) )
+        {
+          myTween.timeScale(timeScale.toFixed(2));
+          myTween.play();
+        }
+        else
+        {
+          myTween.pause();
+        }
+
+      }
+    }
+
+    Number.prototype.between = function(a, b) {
+      var min = Math.min(a, b),
+        max = Math.max(a, b);
+
+      return this > min && this < max;
+    };
+
+  </script>
+
+</body></html>
